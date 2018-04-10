@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #define BASE_SIZE	16
 
 struct dynamic_array {
@@ -6,40 +9,39 @@ struct dynamic_array {
 	long int capacity;
 };
 
-extern struct dynamic_array *darr;
 
 // create empty array of standard capacity
-struct dynamic_array new_empty_dynamic_array(void);
+struct dynamic_array *new_empty_dynamic_array(void);
 
 // create empty array of given capacity
-struct dynamic_array new_dynamic_array(long int capacity);
+struct dynamic_array *new_dynamic_array(long int capacity);
 
 // number of currently held items
-long int size(void);
+long int size(struct dynamic_array *darr);
 
 // total capacity of array
-long int capacity(void);
+long int capacity(struct dynamic_array *darr);
 
 // returns true if array is empty
-int is_empty(void);
+int is_empty(struct dynamic_array *darr);
 
 // return the item at index
-int at(long int index);
+int at(struct dynamic_array *darr, long int index);
 
 // add element at the end of array
-void push(int val);
+void push(struct dynamic_array *darr, int val);
 
 //add element at index
-int insert(long int index, int value);
+int insert(struct dynamic_array *darr, long int index, int value);
 
 // add element at the start of array, before index 0
-void prepend(int value);
+void prepend(struct dynamic_array *darr, int value);
 
 // remove and return element at the end
-int pop(void);
+int pop(struct dynamic_array *darr);
 
 // remove and return element at index
-int remove_at(long int index);
+int remove_at(struct dynamic_array *darr, long int index);
 
 // return index where the value is found, -1 if not found
-long int find(int value);
+long int find(struct dynamic_array *darr, int value);

@@ -1,18 +1,17 @@
 #include "dynamic_array.h"
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-struct dynamic_array new_empty_dynamic_array(void)
+struct dynamic_array *new_empty_dynamic_array(void)
 {
 	struct dynamic_array *new_darr;
-	new_darr = malloc(BASE_SIZE * sizeof(struct dynamic_array));
+	new_darr = malloc(sizeof(struct dynamic_array));
 	new_darr->size = 0;
 	new_darr->capacity = BASE_SIZE;
-	return *new_darr;
+	new_darr->arr = malloc(BASE_SIZE * sizeof(int));
+	return new_darr;
 }
 
-struct dynamic_array new_dynamic_array(long int capacity)
+struct dynamic_array *new_dynamic_array(long int capacity)
 {
 	struct dynamic_array *new_darr;
 	int round_capacity = 0;
@@ -23,33 +22,34 @@ struct dynamic_array new_dynamic_array(long int capacity)
 	while (round_capacity < capacity)
 		round_capacity <<= 1;
 	capacity = round_capacity;
-        new_darr = malloc(capacity * sizeof(struct dynamic_array));
+    new_darr = malloc(sizeof(struct dynamic_array));
 	new_darr->size = 0;
 	new_darr->capacity = capacity;
-	return *new_darr;
+	new_darr->arr = malloc(capacity * sizeof(int));
+	return new_darr;
 }
 
-long int size(void)
+long int size(struct dynamic_array *darr)
 {
 	return darr->size;
 }
 
-long int capacity(void)
+long int capacity(struct dynamic_array *darr)
 {
 	return darr->capacity;
 }
 
-int is_empty(void) 
+int is_empty(struct dynamic_array *darr) 
 {
 	return (darr->size == 0);
 }
 
-int at(long int index)
+int at(struct dynamic_array *darr, long int index)
 {
 	return darr->arr[index];
 }
 
-void double_capacity(void)
+void double_capacity(struct dynamic_array *darr)
 {
 	struct dynamic_array *new_darr;
 	long int i;
@@ -63,7 +63,7 @@ void double_capacity(void)
 	*darr = *new_darr;
 }
 
-void halve_capacity(void)
+void halve_capacity(struct dynamic_array *darr)
 {
 	struct dynamic_array *new_darr;
 	long int i;
@@ -77,15 +77,15 @@ void halve_capacity(void)
 	*darr = *new_darr;
 }
 
-void push(int val)
+void push(struct dynamic_array *darr, int val)
 {
 	if (darr->size == darr->capacity) 
-		double_capacity();
+		double_capacity(darr);
 	darr->arr[darr->size] = val;
 	darr->size += 1;
 }
 
-int insert(long int index, int value)
+int insert(struct dynamic_array *darr, long int index, int value)
 {
 	long int i;
 	
@@ -94,7 +94,7 @@ int insert(long int index, int value)
 		return -EINVAL;
 	}
 	if (darr->size == darr->capacity)
-		double_capacity();
+		double_capacity(darr);
 	for (i = darr->size; i > index; i--)
 		darr->arr[i] = darr->arr[i - 1];
 	darr->arr[index] = value;
@@ -102,17 +102,17 @@ int insert(long int index, int value)
 	return 0;
 }
 
-void prepend(int value)
+void prepend(struct dynamic_array *darr, int value)
 {
 	long int i;
 	if (darr->size == darr->capacity)
-		double_capacity();
+		double_capacity(darr);
 	for (i = darr->size; i > 0; i--)
 		darr->arr[i] = darr->arr[i - 1];
 	darr->arr[0] = value;
 }
 
-int pop(void)
+int pop(struct dynamic_array *darr)
 {
 	int ret_val;
 
@@ -124,11 +124,11 @@ int pop(void)
 	ret_val = darr->arr[darr->size - 1];
 	darr->size -= 1;
 	if (darr->size < 4 * darr->capacity)
-		halve_capacity();
+		halve_capacity(darr);
 	return ret_val;
 }
 
-int delete(long int index)
+int delete(struct dynamic_array *darr, long int index)
 {
 	int ret_val;
 	long int i;
@@ -145,11 +145,11 @@ int delete(long int index)
 		darr->arr[i] = darr->arr[i + 1];
 	darr->size -= 1;
 	if (darr->size < 4 * darr->capacity)
-		halve_capacity();
+		halve_capacity(darr);
 	return ret_val;
 }
 
-long int find(int value)
+long int find(struct dynamic_array *darr, int value)
 {
 	long int i;
 	
