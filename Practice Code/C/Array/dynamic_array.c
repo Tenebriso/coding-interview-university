@@ -1,7 +1,7 @@
 #include "dynamic_array.h"
 #include <errno.h>
-
-static struct dynamic_array *darr;
+#include <stdio.h>
+#include <stdlib.h>
 
 struct dynamic_array new_empty_dynamic_array(void)
 {
@@ -39,12 +39,12 @@ long int capacity(void)
 	return darr->capacity;
 }
 
-bool is_empty(void) 
+int is_empty(void) 
 {
 	return (darr->size == 0);
 }
 
-long int at(long int index)
+int at(long int index)
 {
 	return darr->arr[index];
 }
@@ -110,8 +110,6 @@ void prepend(int value)
 	for (i = darr->size; i > 0; i--)
 		darr->arr[i] = darr->arr[i - 1];
 	darr->arr[0] = value;
-	
-	return 0;
 }
 
 int pop(void)
@@ -159,10 +157,4 @@ long int find(int value)
 		if (darr->arr[i] == value)
 			return i;
 	return -1;
-}
-
-int main()
-{
-
-	return 0;
 }
