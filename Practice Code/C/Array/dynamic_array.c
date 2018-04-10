@@ -3,21 +3,29 @@
 
 static struct dynamic_array *darr;
 
-struct dynamic_array new_dynamic_array(long int capacity)
-{
-	struct dynamic_array *new_darr;
-        new_darr = malloc(capacity * sizeof(struct dynamic_array));
-	new_darr->size = 0;
-	new_darr->capacity = capacity;
-	return *new_darr;
-}
-
 struct dynamic_array new_empty_dynamic_array(void)
 {
 	struct dynamic_array *new_darr;
 	new_darr = malloc(BASE_SIZE * sizeof(struct dynamic_array));
 	new_darr->size = 0;
 	new_darr->capacity = BASE_SIZE;
+	return *new_darr;
+}
+
+struct dynamic_array new_dynamic_array(long int capacity)
+{
+	struct dynamic_array *new_darr;
+	int round_capacity = 0;
+
+	if (capacity & !(capacity & (capacity - 1)))
+		return new_empty_dynamic_array();
+	/* make capacity the closest greater power of two */
+	while (round_capacity < capacity)
+		round_capacity <<= 1;
+	capacity = round_capacity;
+        new_darr = malloc(capacity * sizeof(struct dynamic_array));
+	new_darr->size = 0;
+	new_darr->capacity = capacity;
 	return *new_darr;
 }
 
@@ -29,6 +37,16 @@ long int size(void)
 long int capacity(void)
 {
 	return darr->capacity;
+}
+
+bool is_empty(void) 
+{
+	return (darr->size == 0);
+}
+
+long int at(long int index)
+{
+	return darr->arr[index];
 }
 
 void double_capacity(void)
@@ -67,7 +85,7 @@ void push(int val)
 	darr->size += 1;
 }
 
-int add_at(long int index, int value)
+int insert(long int index, int value)
 {
 	long int i;
 	
@@ -80,6 +98,18 @@ int add_at(long int index, int value)
 	for (i = darr->size; i > index; i--)
 		darr->arr[i] = darr->arr[i - 1];
 	darr->arr[index] = value;
+	
+	return 0;
+}
+
+void prepend(int value)
+{
+	long int i;
+	if (darr->size == darr->capacity)
+		double_capacity();
+	for (i = darr->size; i > 0; i--)
+		darr->arr[i] = darr->arr[i - 1];
+	darr->arr[0] = value;
 	
 	return 0;
 }
@@ -100,7 +130,7 @@ int pop(void)
 	return ret_val;
 }
 
-int remove_at(long int index)
+int delete(long int index)
 {
 	int ret_val;
 	long int i;
@@ -119,6 +149,16 @@ int remove_at(long int index)
 	if (darr->size < 4 * darr->capacity)
 		halve_capacity();
 	return ret_val;
+}
+
+long int find(int value)
+{
+	long int i;
+	
+	for (i = 0; i < darr->size; i++)
+		if (darr->arr[i] == value)
+			return i;
+	return -1;
 }
 
 int main()
