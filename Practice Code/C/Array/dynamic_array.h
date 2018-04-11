@@ -37,11 +37,18 @@ int insert(struct dynamic_array *darr, long int index, int value);
 // add element at the start of array, before index 0
 void prepend(struct dynamic_array *darr, int value);
 
+// return index where the value is found, -1 if not found
+long int find(struct dynamic_array *darr, int value);
+
 // remove and return element at the end
 int pop(struct dynamic_array *darr);
 
 // remove and return element at index
-int remove_at(struct dynamic_array *darr, long int index);
+int delete(struct dynamic_array *darr, long int index);
 
-// return index where the value is found, -1 if not found
-long int find(struct dynamic_array *darr, int value);
+// finds element and returns all its occurances
+int remove_val(struct dynamic_array *darr, int value);
+
+// display all element of array
+void show_array(struct dynamic_array *darr);
+

@@ -11,6 +11,19 @@ struct dynamic_array *new_empty_dynamic_array(void)
 	return new_darr;
 }
 
+unsigned long upper_power_of_two(unsigned long v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+
+}
+
 struct dynamic_array *new_dynamic_array(long int capacity)
 {
 	struct dynamic_array *new_darr;
@@ -19,10 +32,8 @@ struct dynamic_array *new_dynamic_array(long int capacity)
 	if (capacity & !(capacity & (capacity - 1)))
 		return new_empty_dynamic_array();
 	/* make capacity the closest greater power of two */
-	while (round_capacity < capacity)
-		round_capacity <<= 1;
-	capacity = round_capacity;
-    new_darr = malloc(sizeof(struct dynamic_array));
+	capacity = upper_power_of_two(capacity);
+	new_darr = malloc(sizeof(struct dynamic_array));
 	new_darr->size = 0;
 	new_darr->capacity = capacity;
 	new_darr->arr = malloc(capacity * sizeof(int));
@@ -49,18 +60,28 @@ int at(struct dynamic_array *darr, long int index)
 	return darr->arr[index];
 }
 
+void show_array(struct dynamic_array *darr)
+{
+	long int i;
+	printf("SIZE %ld CAPACITY %ld\n", darr->size, darr->capacity);
+	for (i = 0; i < darr->size; i++)
+		printf("%d ", darr->arr[i]);
+	printf("\n");
+}
+
 void double_capacity(struct dynamic_array *darr)
 {
 	struct dynamic_array *new_darr;
 	long int i;
-
-	new_darr = malloc(2 * darr->capacity * sizeof(struct dynamic_array));
+	
+	new_darr = malloc(sizeof(struct dynamic_array));
+	new_darr->arr = malloc(2 * darr->capacity * sizeof(int));
 	for (i = 0; i < darr->size; i++)
 		new_darr->arr[i] = darr->arr[i];
 	new_darr->capacity = darr->capacity * 2;
 	new_darr->size = darr->size;
 	free(darr);
-	*darr = *new_darr;
+	darr = new_darr;
 }
 
 void halve_capacity(struct dynamic_array *darr)
@@ -68,11 +89,18 @@ void halve_capacity(struct dynamic_array *darr)
 	struct dynamic_array *new_darr;
 	long int i;
 
-	new_darr = malloc(darr->capacity / 2 * sizeof(struct dynamic_array));
+	puts("old array: ");
+	show_array(darr);
+	if (darr->capacity == 1)
+		return;
+	new_darr = malloc(sizeof(struct dynamic_array));
+	new_darr->arr = malloc((darr->capacity / 2) * sizeof(int));
 	for (i = 0; i < darr->size; i++)
 		new_darr->arr[i] = darr->arr[i];
 	new_darr->capacity = darr->capacity / 2;
 	new_darr->size = darr->size;
+	puts("new halved array: ");
+	show_array(new_darr);
 	free(darr);
 	*darr = *new_darr;
 }
@@ -90,7 +118,7 @@ int insert(struct dynamic_array *darr, long int index, int value)
 	long int i;
 	
 	if (index < 0 || index > darr-> size) {
-		printf("ERROR: index out of bounds\n");
+		printf("ERROR: index out of bounds %ld\n", index);
 		return -EINVAL;
 	}
 	if (darr->size == darr->capacity)
@@ -98,6 +126,7 @@ int insert(struct dynamic_array *darr, long int index, int value)
 	for (i = darr->size; i > index; i--)
 		darr->arr[i] = darr->arr[i - 1];
 	darr->arr[index] = value;
+	darr->size += 1;
 	
 	return 0;
 }
@@ -110,43 +139,7 @@ void prepend(struct dynamic_array *darr, int value)
 	for (i = darr->size; i > 0; i--)
 		darr->arr[i] = darr->arr[i - 1];
 	darr->arr[0] = value;
-}
-
-int pop(struct dynamic_array *darr)
-{
-	int ret_val;
-
-	if (darr->size == 0)
-	{
-		printf("ERROR: empty array\n");
-		return -EINVAL;
-	}
-	ret_val = darr->arr[darr->size - 1];
-	darr->size -= 1;
-	if (darr->size < 4 * darr->capacity)
-		halve_capacity(darr);
-	return ret_val;
-}
-
-int delete(struct dynamic_array *darr, long int index)
-{
-	int ret_val;
-	long int i;
-
-	if (index < 0 || index >= darr->size) {
-		printf("ERROR: index out of bounds");
-		return -EINVAL;
-	} else if (darr->size == 0) {
-		printf("ERROR: empty array");
-		return -EINVAL;
-	}
-	ret_val = darr->arr[index];
-	for (i = index; i < darr->size - 1; i++)
-		darr->arr[i] = darr->arr[i + 1];
-	darr->size -= 1;
-	if (darr->size < 4 * darr->capacity)
-		halve_capacity(darr);
-	return ret_val;
+	darr->size += 1;
 }
 
 long int find(struct dynamic_array *darr, int value)
@@ -158,3 +151,59 @@ long int find(struct dynamic_array *darr, int value)
 			return i;
 	return -1;
 }
+
+int pop(struct dynamic_array *darr)
+{
+	int ret_val;
+
+	if (darr->size == 0) {
+		printf("ERROR: empty array\n");
+		return -EINVAL;
+	}
+	ret_val = darr->arr[darr->size - 1];
+	darr->size -= 1;
+	if (darr->size < (darr->capacity / 4))
+		halve_capacity(darr);
+	return ret_val;
+}
+
+int delete(struct dynamic_array *darr, long int index)
+{
+	int ret_val;
+	long int i;
+
+	if (index < 0 || index >= darr->size) {
+		printf("ERROR: index out of bounds %ld\n", index);
+		return -EINVAL;
+	} else if (darr->size == 0) {
+		printf("ERROR: empty array\n");
+		return -EINVAL;
+	}
+	ret_val = darr->arr[index];
+	for (i = index; i < darr->size - 1; i++)
+		darr->arr[i] = darr->arr[i + 1];
+	darr->size -= 1;
+	if (darr->size < (darr->capacity / 4))
+		halve_capacity(darr);
+	return ret_val;
+}
+
+int remove_val(struct dynamic_array *darr, int value)
+{
+	long int index;
+
+	index = find(darr, value);
+	if (index != -1) {
+		while (index != -1) {
+			if (delete(darr, index) != value) {
+				printf("ERROR: error deleting element at index %ld\n", index);
+				return -EINVAL;
+			}
+			index = find(darr, value);
+		}
+		return 0;
+	}
+	printf("ERROR: invalid value %d\n", value);
+	return -EINVAL;
+}
+
