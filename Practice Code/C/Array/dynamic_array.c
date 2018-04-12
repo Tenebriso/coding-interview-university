@@ -69,40 +69,45 @@ void show_array(struct dynamic_array *darr)
 	printf("\n");
 }
 
-void double_capacity(struct dynamic_array *darr)
+int double_capacity(struct dynamic_array *darr)
 {
 	struct dynamic_array *new_darr;
 	long int i;
-	
 	new_darr = malloc(sizeof(struct dynamic_array));
-	new_darr->arr = malloc(2 * darr->capacity * sizeof(int));
-	for (i = 0; i < darr->size; i++)
-		new_darr->arr[i] = darr->arr[i];
 	new_darr->capacity = darr->capacity * 2;
 	new_darr->size = darr->size;
+	new_darr->arr = realloc(darr->arr, new_darr->capacity);
+	if (new_darr->arr == NULL) {
+		free(darr->arr);
+		free(darr);
+		printf("ERROR: failed doubling the array size\n");
+		return -ENOMEM;
+	}
 	free(darr);
-	darr = new_darr;
+	darr = new_darr;	
+	return 0;
 }
 
-void halve_capacity(struct dynamic_array *darr)
+int halve_capacity(struct dynamic_array *darr)
 {
 	struct dynamic_array *new_darr;
 	long int i;
 
-	puts("old array: ");
-	show_array(darr);
 	if (darr->capacity == 1)
-		return;
+		return 0;
 	new_darr = malloc(sizeof(struct dynamic_array));
-	new_darr->arr = malloc((darr->capacity / 2) * sizeof(int));
-	for (i = 0; i < darr->size; i++)
-		new_darr->arr[i] = darr->arr[i];
 	new_darr->capacity = darr->capacity / 2;
 	new_darr->size = darr->size;
-	puts("new halved array: ");
-	show_array(new_darr);
+	new_darr->arr = realloc(darr->arr, new_darr->capacity);
+	if (new_darr->arr == NULL) {
+		free(darr->arr);
+		free(darr);
+		printf("ERROR: failed doubling the array size\n");
+		return -ENOMEM;
+	}
 	free(darr);
-	*darr = *new_darr;
+	darr = new_darr;
+	return 0;
 }
 
 void push(struct dynamic_array *darr, int val)
